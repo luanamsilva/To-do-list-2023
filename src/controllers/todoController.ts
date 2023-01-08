@@ -7,28 +7,20 @@ const allToDo = await Todo.findAll()
 res.json({ allToDo })
 }
 
-export const oneToDo = async (req: Request, res: Response) => {
-
-  let {id} = req.params
-
-  let getToDo = await Todo.findByPk(id)
-
-if(getToDo) {
-res.json({getToDo})
-}
-else{
-  res.json({error: 'Tarefa não encontrada'});
-  }
-}
-
 
 export const createTodo = async(req: Request, res: Response) =>{
   let {title } = req.body;
  
-
-  let newToDo = await Todo.create({title})
+if(req.body.title){
+   let newToDo = await Todo.create({
+    title, 
+    done: req.body.done ? true: false})
 res.status(201);
-  res.json({ id: newToDo.id, title });
+  res.json({ newToDo });
+} else{
+  res.json({error: 'Verifique os dados informados'})
+}
+ 
 }
 
 
@@ -36,15 +28,28 @@ res.status(201);
 
 export const updateToDo = async(req: Request, res: Response) =>{
 
-  let { id } = req.params
-let { title} = req.body
-
+  let id  = req.params.id;
+  
  let newToDo = await Todo.findByPk(id)
  if(newToDo){
-
-  newToDo.title = title
-  await newToDo.save()
-  res.json({newToDo})
+  if(req.body.title){
+    newToDo.title = req.body.title
+  }
+  if(req.body.done){
+    switch(req.body.done.toLowerCase()){
+      case 'true':
+      case '1':
+        newToDo.done = true;
+        break;
+      case 'false':
+      case '0':
+        newToDo.done = false;
+        break
+       
+    }
+  }
+await newToDo.save()
+res.json({newToDo})
  }
  else{
   res.json({error: "Tarefa não localizada"})
